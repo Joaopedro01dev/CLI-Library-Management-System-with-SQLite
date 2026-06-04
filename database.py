@@ -239,12 +239,12 @@ def loan(book_id, reader_id, cur, con):
         cur.execute("SELECT id FROM book WHERE id = ?;", (book_id,))
         if not cur.fetchone():
             print("Erro: O ID do livro informado não existe!")
-            return
+            return False
 
         cur.execute("SELECT id FROM reader WHERE id = ?;", (reader_id,))
         if not cur.fetchone():
             print("Erro: O ID do leitor informado não existe!")
-            return
+            return False
 
         cur.execute("""
             SELECT id FROM loan
@@ -253,7 +253,7 @@ def loan(book_id, reader_id, cur, con):
 
         if cur.fetchone():
             print("Erro: Livro não disponível, pois já está emprestado!")
-            return
+            return False
             
         cur.execute("""
             INSERT INTO loan (reader_id, book_id, loan_date)
@@ -262,10 +262,12 @@ def loan(book_id, reader_id, cur, con):
 
         con.commit()
         print("Empréstimo realizado com sucesso!")
+        return True
 
     except sqlite3.Error as e:
         con.rollback()
         print(f"Erro no banco de dados: {e}")
+        return False
 
 def return_book(book_id, cur, con):
     try:
@@ -296,41 +298,24 @@ def return_book(book_id, cur, con):
         print(f"Erro ao processar devolução no banco de dados: {e}")
 
 def get_books_by_reader(reader_id, cur):
+    """
+    Busca os empréstimos atualmente ATIVOS de um leitor específico.
+    Retorna uma lista de registros (tuplas) ou uma lista vazia.
+    """
     try:
         cur.execute("""
-            SELECT id FROM loan
-            WHERE reader_id = ?;
-        """, (reader_id,))
-
-        if not cur.fetchone():
-            print("Erro! Leitor sem histórico de livros emprestados!")
-            return
-
-        cur.execute("""
-            SELECT book.title, book.author, loan.loan_date, loan.return_date
+            SELECT book.id, book.title, book.author, loan.loan_date
             FROM loan
             JOIN book ON book.id = loan.book_id
             WHERE loan.reader_id = ? AND loan.return_date IS NULL;
         """, (reader_id,))
 
         loans = cur.fetchall()
-        print(f"\n--- Histórico de Empréstimos do Leitor (ID: {reader_id}) ---")
-        
-        for row in loans:
-            title = row[0]
-            author = row[1]
-            loan_date = row[2]
-            return_date = row[3]
-            
-            if return_date is None:
-                status = "EM ANDAMENTO"
-            else:
-                status = f"DEVOLVIDO em {return_date}"
-                
-            print(f"Livro: {title} ({author}) | Retirado em: {loan_date} | Status: {status}")
+        return loans
 
     except sqlite3.Error as e:
-        print(f"Erro ao buscar histórico do leitor: {e}")
+        print(f"Erro ao buscar empréstimos ativos do leitor: {e}")
+        return []
 
 def get_overdue_books(cur):
     try:

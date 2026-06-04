@@ -111,7 +111,11 @@ def main():
             try:
                 id_livro = int(input("Digite o ID do livro: "))
                 id_leitor = int(input("Digite o ID do leitor: "))
-                database.loan(id_livro, id_leitor, cur, con)
+                
+                sucesso = database.loan(id_livro, id_leitor, cur, con)
+                if sucesso:
+                    print("Empréstimo realizado com sucesso!")
+
             except ValueError:
                 print("IDs precisam ser números inteiros.")
 
@@ -124,10 +128,18 @@ def main():
                 print("Por favor, digite um ID numérico válido.")
 
         elif opcao == "12":
-            print("\n[HISTÓRICO DO LEITOR]")
+            print("\n[EMPRÉSTIMOS ATIVOS DO LEITOR]")
             try:
-                id_leitor = int(input("Digite o ID do leitor para buscar o histórico: "))
-                database.get_books_by_reader(id_leitor, cur)
+                id_leitor = int(input("Digite o ID do leitor para buscar os empréstimos: "))
+                ativos = database.get_books_by_reader(id_leitor, cur)
+                
+                if not ativos:
+                    print("O leitor não possui nenhum empréstimo ATIVO no momento.")
+                else:
+                    print(f"\n--- Livros atualmente com o Leitor (ID: {id_leitor}) ---")
+                    for item in ativos:
+                        print(f"ID Livro: {item[0]} | Livro: {item[1]} ({item[2]}) | Retirado em: {item[3]}")
+                        
             except ValueError:
                 print("Por favor, digite um ID numérico válido.")
 
