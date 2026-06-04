@@ -87,8 +87,8 @@ def main():
             if not readers:
                 print("Nenhum leitor cadastrado.")
             else:
-                for idx, r in enumerate(readers, start=1):
-                    print(f"Leitor: {r[0]}")
+                for reader in readers:
+                    print(f"ID: {reader[0]} | Nome: {reader[1]}")
 
         elif opcao == "8":
             print("\n[ATUALIZAR LEITOR]")

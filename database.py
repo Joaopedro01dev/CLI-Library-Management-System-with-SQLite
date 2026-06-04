@@ -163,7 +163,7 @@ def update_reader(reader_id, cur, con):
     
     new_name = input("Digite um novo nome ou pressione ENTER para manter: ").strip().title()
     if not new_name:
-        new_name = current_reader
+        new_name = current_reader[0]
 
     try:
         cur.execute("""
@@ -209,7 +209,7 @@ def delete_reader(reader_id, cur, con):
 def get_all_users(cur):
     try:
         cur.execute("""
-            SELECT name FROM reader;
+            SELECT id, name FROM reader;
         """)
 
         readers = cur.fetchall()
@@ -310,7 +310,7 @@ def get_books_by_reader(reader_id, cur):
             SELECT book.title, book.author, loan.loan_date, loan.return_date
             FROM loan
             JOIN book ON book.id = loan.book_id
-            WHERE loan.reader_id = ?;
+            WHERE loan.reader_id = ? AND loan.return_date IS NULL;
         """, (reader_id,))
 
         loans = cur.fetchall()
